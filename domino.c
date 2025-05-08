@@ -8,48 +8,111 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
-// Incluir libreria de funciones
+// Incluir libreria de funciones #include "funciones.h"
 
 // Constantes
 #define MAX 28
 #define MAX_VALOR 6
+#define PLAYERS 4
 
 // Estructuras
 typedef struct {
-	//char name[3];
 	int value[2];
 	int available;
 } Ficha;
 
+typedef struct {
+	int fichas[7];
+} Player;
+
 // Prototipos
 void Domino();
-
+void InitializePlayers(Player***, int);
+void Initialize(Ficha*);
+int Random();
+void Repartir(Ficha*, Player**, int);
+void ClearBuffer();
 
 int main(void) {
+	srand(time(NULL));
 	Domino();
 	return 0;
 }
 
 // Procedimientos
 void Domino() {
-	int cantidad = MAX;
-	Ficha fichas[cantidad];
+	// Seleccion de jugadores
+	int py = 0;
+	printf("\nCuantos jugadores van a jugar?\n");
+	printf("[1] Salir [2] 2 jugadores [3] 3 Jugadores [4] 4 Jugadores\n>> ");
+	scanf("%d", &py);
+	ClearBuffer();
+
+	if(py == 1) {
+		return;
+	}
+	// Generacion de jugadores
+	Player **jugadores = NULL;
+	InitializePlayers(&jugadores, py);
 
 	// Inicializacion de fichas
-	int index = 0;
+	int cantidad = MAX;
+	Ficha fichas[cantidad];
+	Initialize(fichas);
+
+	// Repartir fichas
+	Repartir(fichas, jugadores, py);
+
+	// Mostramos fichas por jugador
+	for(int i = 0; i < py; i++) {
+		printf("\nJugador %d\n", i + 1);
+		for(int j = 0; j < 7; j++) {
+			int indexFicha = jugadores[i]->fichas[j];
+			printf("%d - %d\n", fichas[indexFicha].value[0], fichas[indexFicha].value[1]);
+		}
+	}
+}
+
+void InitializePlayers(Player ***jugador, int py) {
+	
+	*jugador = (Player **)malloc(py * sizeof(Player *)); // Generamos un arreglo dinamico dependiendo de la cantidad de jugadores
+	for(int i = 0; i < py; i++) { // Asignamos memoria para cada jugador para almacenar un estructura de tipo Player
+		(*jugador)[i] = (Player *)malloc(sizeof(Player));
+	}
+}
+
+void Initialize(Ficha *fichas) {
+    int index = 0;
     for (int j = 0; j <= MAX_VALOR; j++) {
         for (int k = j; k <= MAX_VALOR; k++) {
             fichas[index].value[0] = j;
             fichas[index].value[1] = k;
             fichas[index].available = 1;
-            //snprintf(fichas[index].name, sizeof(fichas[index].name), "%d-%d", j, k);
             index++;
         }
     }
+}
 
-	// Imprimir fichas
-	for(int i = 0; i < cantidad; i++) {
-		printf("%d - %d\n", fichas[i].value[0], fichas[i].value[1]);
+int Random() {
+	return rand() % MAX;
+}
+
+void Repartir(Ficha *fichas, Player **jugador, int py) {
+	int fichasPorJugador = 7;
+	int indexFicha = Random();
+	for(int i = 0; i < py; i++) { // Iteramos sobre los jugadores
+		for(int j = 0; j < fichasPorJugador; j++) { // Son 7 fichas por jugador
+			while(!fichas[indexFicha].available) {
+				indexFicha = Random(); // En caso que la ficha no este disponible generamos un nuevo index
+			}
+			jugador[i] -> fichas[j] = indexFicha;
+			fichas[indexFicha].available = 0;
+			indexFicha = Random();
+		}
 	}
-	
+}
+
+void ClearBuffer(){
+    char c;
+	while((c = getchar() ) != '\n' && c != EOF);
 }
