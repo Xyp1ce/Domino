@@ -11,13 +11,15 @@
 // Incluir libreria de funciones
 
 // Constantes
+#define MAX 28
+#define MAX_VALOR 6
 
 // Estructuras
 typedef struct {
-	char name[3];
+	//char name[3];
 	int value[2];
 	int available;
-}Ficha;
+} Ficha;
 
 // Prototipos
 void Domino();
@@ -30,18 +32,20 @@ int main(void) {
 
 // Procedimientos
 void Domino() {
-	int cantidad = 28;
+	int cantidad = MAX;
 	Ficha fichas[cantidad];
 
 	// Inicializacion de fichas
-	for(int i = 0; i < 7; i++) {
-		for(int j = i; j < 7 - i; j++) {
-			//fichas[i].name =
-			fichas[i].value[0] = i;
-			fichas[i].value[1] = j;
-			fichas[i].available = 1;
-		}
-	}
+	int index = 0;
+    for (int j = 0; j <= MAX_VALOR; j++) {
+        for (int k = j; k <= MAX_VALOR; k++) {
+            fichas[index].value[0] = j;
+            fichas[index].value[1] = k;
+            fichas[index].available = 1;
+            //snprintf(fichas[index].name, sizeof(fichas[index].name), "%d-%d", j, k);
+            index++;
+        }
+    }
 
 	// Imprimir fichas
 	for(int i = 0; i < cantidad; i++) {
