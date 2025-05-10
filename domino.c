@@ -26,10 +26,10 @@ typedef struct {
 
 // Prototipos
 void Domino();
-int Random(int);
+int Random(int );
 void ClearBuffer();
 Ficha **Initialize(int);
-void Repartir(Ficha**, Player**, int, int cantidad);
+int Repartir(Ficha**, Player**, int, int);
 Player **InitializePlayers(int);
 
 int main(void) {
@@ -58,16 +58,37 @@ void Domino() {
 	// Inicializacion de fichas
 	int cantidad = MAX;
 	Ficha **fichas = Initialize(cantidad);
-	
 
 	// Repartir fichas
-	Repartir(fichas, jugadores, py, cantidad);
+	cantidad = Repartir(fichas, jugadores, py, cantidad);
+
+	// Impresion de fichas por jugador
+	for(int i = 0; i < py; i++) {
+		printf("Jugador %d\n", i + 1);
+		for(int j = 0; j < 7; j++) {
+			printf("%d - %d", (jugadores[i])->fichasPerPlayer[j]->value[0], (jugadores[i])->fichasPerPlayer[j]->value[1]);
+			printf("\n");
+		}
+	}
+
+	
+	// Impresion de fichas sin agarrar
+	if (fichas != NULL && cantidad > 0) {
+    printf("Fichas sin jugar: %d\n", cantidad);
+    for (int i = 0; i < cantidad; i++) {
+        printf("%d - %d\n", fichas[i]->value[0], fichas[i]->value[1]);
+    }
+	} else {
+    printf("No hay fichas sin jugar.\n");
+	}
+	
 
 	// Liberacion de memoria
 	for(int i = 0; i < py; i++) {
 		free(jugadores[i]);
 	}
 	free(jugadores);
+
 }
 
 Player **InitializePlayers(int py) {
@@ -93,9 +114,8 @@ Ficha **Initialize(int cantidad) {
 	int index = 0;
     for (int j = 0; j <= MAX_VALOR; j++) {
         for (int k = j; k <= MAX_VALOR; k++) {
-            (*fichas)[index].value[0] = j;
-            (*fichas)[index].value[1] = k;
-            //(*fichas)[index].available = 1;
+            fichas[index]->value[0] = j;
+			fichas[index]->value[1] = k;
             index++;
         }
     }
@@ -106,7 +126,7 @@ int Random(int cantidad) {
 	return rand() % cantidad;
 }
 
-void Repartir(Ficha **fichas, Player **jugador, int py, int cantidad) {
+int Repartir(Ficha **fichas, Player **jugador, int py, int cantidad) {
     printf("Repartiendo Fichas\n");
     int fichasPorJugador = 7;
 
@@ -126,18 +146,18 @@ void Repartir(Ficha **fichas, Player **jugador, int py, int cantidad) {
             }
 
             cantidad--;
-			printf("Cantidad: %d\n", cantidad);
 
             // Redimensionar el arreglo
             Ficha **aux = NULL;
             if (aux == NULL && cantidad > 0) {
-				printf("Buscando Memoria\n");
-                aux = realloc(*fichas, cantidad * sizeof(Ficha *));
+                aux = realloc(fichas, cantidad * sizeof(Ficha *));
             }
             fichas = aux;
         }
     }
+	return cantidad;
 }
+
 void ClearBuffer(){
     char c;
 	while((c = getchar() ) != '\n' && c != EOF);
