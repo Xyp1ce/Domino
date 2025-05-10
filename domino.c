@@ -18,20 +18,19 @@
 // Estructuras
 typedef struct {
 	int value[2];
-	int available;
 } Ficha;
 
 typedef struct {
-	int fichas[7];
+	Ficha **fichasPerPlayer;
 } Player;
 
 // Prototipos
 void Domino();
-int Random();
+int Random(int);
 void ClearBuffer();
-void Initialize(Ficha*);
-void Repartir(Ficha*, Player**, int);
-void InitializePlayers(Player***, int);
+Ficha **Initialize(int);
+void Repartir(Ficha**, Player**, int, int cantidad);
+Player **InitializePlayers(int);
 
 int main(void) {
 	srand(time(NULL));
@@ -54,58 +53,91 @@ void Domino() {
 		return;
 	}
 	// Generacion de jugadores
-	Player **jugadores = NULL;
-	InitializePlayers(&jugadores, py);
-
+	Player **jugadores = InitializePlayers(py);
+	
 	// Inicializacion de fichas
 	int cantidad = MAX;
-	Ficha fichas[cantidad];
-	Initialize(fichas);
+	Ficha **fichas = Initialize(cantidad);
+	
 
 	// Repartir fichas
-	Repartir(fichas, jugadores, py);
-}
+	Repartir(fichas, jugadores, py, cantidad);
 
-void InitializePlayers(Player ***jugador, int py) {
-	
-	*jugador = (Player **)malloc(py * sizeof(Player *)); // Generamos un arreglo dinamico dependiendo de la cantidad de jugadores
-	for(int i = 0; i < py; i++) { // Asignamos memoria para cada jugador para almacenar un estructura de tipo Player
-		(*jugador)[i] = (Player *)malloc(sizeof(Player));
+	// Liberacion de memoria
+	for(int i = 0; i < py; i++) {
+		free(jugadores[i]);
 	}
+	free(jugadores);
 }
 
-void Initialize(Ficha *fichas) {
-	
+Player **InitializePlayers(int py) {
+	printf("Inicializando jugadores\n");
+	Player **jugador = (Player **)malloc(py * sizeof(Player *)); // Generamos un arreglo dinamico dependiendo de la cantidad de jugadores
+	for(int i = 0; i < py; i++) { // Asignamos memoria para cada jugador para almacenar un estructura de tipo Player
+		jugador[i] = (Player *)malloc(sizeof(Player));
+		jugador[i]->fichasPerPlayer = (Ficha**)malloc(7 * sizeof(Ficha*));
+		for(int j = 0; j < 7; j++) {
+			jugador[i]->fichasPerPlayer[j] = (Ficha*)malloc(sizeof(Ficha));
+		}
+	}
+	return jugador;
+}
+
+Ficha **Initialize(int cantidad) {
+	printf("Inicializando Fichas\n");
+	Ficha **fichas = (Ficha**)malloc(cantidad * sizeof(Ficha*));
+	for(int i = 0; i < cantidad; i++) {
+		fichas[i] = (Ficha*)malloc(sizeof(Ficha));
+	}
+
 	int index = 0;
     for (int j = 0; j <= MAX_VALOR; j++) {
         for (int k = j; k <= MAX_VALOR; k++) {
-            fichas[index].value[0] = j;
-            fichas[index].value[1] = k;
-            fichas[index].available = 1;
+            (*fichas)[index].value[0] = j;
+            (*fichas)[index].value[1] = k;
+            //(*fichas)[index].available = 1;
             index++;
         }
     }
+	return fichas;
 }
 
-int Random() {
-	return rand() % MAX;
+int Random(int cantidad) {
+	return rand() % cantidad;
 }
 
-void Repartir(Ficha *fichas, Player **jugador, int py) {
-	int fichasPorJugador = 7;
-	int indexFicha = Random();
-	for(int i = 0; i < py; i++) { // Iteramos sobre los jugadores
-		for(int j = 0; j < fichasPorJugador; j++) { // Son 7 fichas por jugador
-			while(!fichas[indexFicha].available) {
-				indexFicha = Random(); // En caso que la ficha no este disponible generamos un nuevo index
-			}
-			jugador[i] -> fichas[j] = indexFicha;
-			fichas[indexFicha].available = 0;
-			indexFicha = Random();
-		}
-	}
-}
+void Repartir(Ficha **fichas, Player **jugador, int py, int cantidad) {
+    printf("Repartiendo Fichas\n");
+    int fichasPorJugador = 7;
 
+    for (int i = 0; i < py; i++) {
+        for (int j = 0; j < fichasPorJugador && cantidad > 0; j++) {
+            int indexFicha = Random(cantidad);
+
+            // Copiar la ficha al jugador
+            *(jugador[i]->fichasPerPlayer[j]) = *(fichas[indexFicha]);
+
+            // Liberar la ficha seleccionada
+            free(fichas[indexFicha]);
+
+            // Mover las fichas restantes
+            for (int k = indexFicha; k < cantidad - 1; k++) {
+                fichas[k] = fichas[k + 1];
+            }
+
+            cantidad--;
+			printf("Cantidad: %d\n", cantidad);
+
+            // Redimensionar el arreglo
+            Ficha **aux = NULL;
+            if (aux == NULL && cantidad > 0) {
+				printf("Buscando Memoria\n");
+                aux = realloc(*fichas, cantidad * sizeof(Ficha *));
+            }
+            fichas = aux;
+        }
+    }
+}
 void ClearBuffer(){
     char c;
 	while((c = getchar() ) != '\n' && c != EOF);
