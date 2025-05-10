@@ -49,6 +49,7 @@ void Domino() {
 		scanf("%d", &py);
 		ClearBuffer();
 	}while(py >= 5);
+
 	if(py == 1) {
 		return;
 	}
@@ -63,15 +64,6 @@ void Domino() {
 
 	// Repartir fichas
 	Repartir(fichas, jugadores, py);
-
-	// Mostramos fichas por jugador
-	for(int i = 0; i < py; i++) {
-		printf("\nJugador %d\n", i + 1);
-		for(int j = 0; j < 7; j++) {
-			int indexFicha = jugadores[i]->fichas[j];
-			printf("%d - %d\n", fichas[indexFicha].value[0], fichas[indexFicha].value[1]);
-		}
-	}
 }
 
 void InitializePlayers(Player ***jugador, int py) {
@@ -83,7 +75,8 @@ void InitializePlayers(Player ***jugador, int py) {
 }
 
 void Initialize(Ficha *fichas) {
-    int index = 0;
+	
+	int index = 0;
     for (int j = 0; j <= MAX_VALOR; j++) {
         for (int k = j; k <= MAX_VALOR; k++) {
             fichas[index].value[0] = j;
