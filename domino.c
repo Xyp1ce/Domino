@@ -27,11 +27,11 @@ typedef struct {
 
 // Prototipos
 void Domino();
-void InitializePlayers(Player***, int);
-void Initialize(Ficha*);
 int Random();
-void Repartir(Ficha*, Player**, int);
 void ClearBuffer();
+void Initialize(Ficha*);
+void Repartir(Ficha*, Player**, int);
+void InitializePlayers(Player***, int);
 
 int main(void) {
 	srand(time(NULL));
@@ -43,11 +43,12 @@ int main(void) {
 void Domino() {
 	// Seleccion de jugadores
 	int py = 0;
-	printf("\nCuantos jugadores van a jugar?\n");
-	printf("[1] Salir [2] 2 jugadores [3] 3 Jugadores [4] 4 Jugadores\n>> ");
-	scanf("%d", &py);
-	ClearBuffer();
-
+	do {
+		printf("\nCuantos jugadores van a jugar?\n");
+		printf("[1] Salir [2] 2 jugadores [3] 3 Jugadores [4] 4 Jugadores\n>> ");
+		scanf("%d", &py);
+		ClearBuffer();
+	}while(py >= 5);
 	if(py == 1) {
 		return;
 	}
