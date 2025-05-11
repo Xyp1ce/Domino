@@ -85,20 +85,29 @@ void Domino() {
 
 	// Liberacion de memoria
 	for(int i = 0; i < py; i++) {
+		for(int j = 0; j < 7; j++) {
+			free(jugadores[i]->fichasPerPlayer[j]);
+		}
+		free(jugadores[i]->fichasPerPlayer);
 		free(jugadores[i]);
 	}
 	free(jugadores);
+	
+	for(int i = 0; i < cantidad; i++) {
+		free(fichas[i]);
+	}
+	free(fichas);
 
 }
 
 Player **InitializePlayers(int py) {
 	printf("Inicializando jugadores\n");
 	Player **jugador = (Player **)malloc(py * sizeof(Player *)); // Generamos un arreglo dinamico dependiendo de la cantidad de jugadores
-	for(int i = 0; i < py; i++) { // Asignamos memoria para cada jugador para almacenar un estructura de tipo Player
-		jugador[i] = (Player *)malloc(sizeof(Player));
-		jugador[i]->fichasPerPlayer = (Ficha**)malloc(7 * sizeof(Ficha*));
+	for(int i = 0; i < py; i++) { 
+		jugador[i] = (Player *)malloc(sizeof(Player)); // Asignamos memoria para cada jugador para almacenar un estructura de tipo Player
+		jugador[i]->fichasPerPlayer = (Ficha**)malloc(7 * sizeof(Ficha*)); // Generamos un arreglo de apuntadores dentro de cada estructura para las fichas
 		for(int j = 0; j < 7; j++) {
-			jugador[i]->fichasPerPlayer[j] = (Ficha*)malloc(sizeof(Ficha));
+			jugador[i]->fichasPerPlayer[j] = (Ficha*)malloc(sizeof(Ficha)); // Generamos espacio para 7 fichas por jugador
 		}
 	}
 	return jugador;
