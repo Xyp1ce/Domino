@@ -32,6 +32,9 @@ Ficha **Initialize(int);
 int Repartir(Ficha**, Player**, int, int);
 Player **InitializePlayers(int);
 Ficha **Desplazamiento(Ficha **, int, int);
+void ImpresionJugador(Player **, int);
+void ImpresionFichas(Ficha **, int);
+void FreeMemory(Ficha **, Player **, int, int);
 
 int main(void) {
 	srand(time(NULL));
@@ -64,40 +67,13 @@ void Domino() {
 	cantidad = Repartir(fichas, jugadores, py, cantidad);
 
 	// Impresion de fichas por jugador
-	for(int i = 0; i < py; i++) {
-		printf("Jugador %d\n", i + 1);
-		for(int j = 0; j < 7; j++) {
-			printf("%d - %d", (jugadores[i])->fichasPerPlayer[j]->value[0], (jugadores[i])->fichasPerPlayer[j]->value[1]);
-			printf("\n");
-		}
-	}
+	ImpresionJugador(jugadores, py);
 
-	
 	// Impresion de fichas sin agarrar
-	if (fichas != NULL && cantidad > 0) {
-    printf("Fichas sin jugar: %d\n", cantidad);
-    for (int i = 0; i < cantidad; i++) {
-        printf("%d - %d\n", fichas[i]->value[0], fichas[i]->value[1]);
-    }
-	} else {
-    printf("No hay fichas sin jugar.\n");
-	}
-	
+	ImpresionFichas(fichas, cantidad);
 
 	// Liberacion de memoria
-	for(int i = 0; i < py; i++) {
-		for(int j = 0; j < 7; j++) {
-			free(jugadores[i]->fichasPerPlayer[j]);
-		}
-		free(jugadores[i]->fichasPerPlayer);
-		free(jugadores[i]);
-	}
-	free(jugadores);
-	
-	for(int i = 0; i < cantidad; i++) {
-		free(fichas[i]);
-	}
-	free(fichas);
+	FreeMemory(fichas, jugadores, cantidad, py);
 
 }
 
@@ -175,4 +151,41 @@ Ficha **Desplazamiento(Ficha **Dezplazar, int cantidad, int index) {
         aux = realloc(Dezplazar, (cantidad-1) * sizeof(Ficha *));
     }
 	return aux;
+}
+
+void ImpresionJugador(Player **jugadores, int py) {
+	for(int i = 0; i < py; i++) {
+		printf("Jugador %d\n", i + 1);
+		for(int j = 0; j < 7; j++) {
+			printf("%d - %d", (jugadores[i])->fichasPerPlayer[j]->value[0], (jugadores[i])->fichasPerPlayer[j]->value[1]);
+			printf("\n");
+		}
+	}
+}
+
+void ImpresionFichas(Ficha **fichas, int cantidad) {
+	if (fichas != NULL && cantidad > 0) {
+    printf("Fichas sin jugar: %d\n", cantidad);
+    for (int i = 0; i < cantidad; i++) {
+        printf("%d - %d\n", fichas[i]->value[0], fichas[i]->value[1]);
+    }
+	} else {
+    printf("No hay fichas sin jugar.\n");
+	}
+}
+
+void FreeMemory(Ficha **fichas, Player **jugadores, int cantidad, int py) {
+	for(int i = 0; i < py; i++) {
+		for(int j = 0; j < 7; j++) {
+			free(jugadores[i]->fichasPerPlayer[j]);
+		}
+		free(jugadores[i]->fichasPerPlayer);
+		free(jugadores[i]);
+	}
+	free(jugadores);
+	
+	for(int i = 0; i < cantidad; i++) {
+		free(fichas[i]);
+	}
+	free(fichas);
 }
