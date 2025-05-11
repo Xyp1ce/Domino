@@ -26,6 +26,8 @@ typedef struct {
 
 // Prototipos
 void Domino();
+
+// Prototipos para la inicializacion del juego
 int Random(int );
 void ClearBuffer();
 Ficha **Initialize(int);
@@ -34,6 +36,12 @@ Player **InitializePlayers(int);
 Ficha **Desplazamiento(Ficha **, int, int);
 void ImpresionJugador(Player **, int);
 void ImpresionFichas(Ficha **, int);
+
+// Prototipos del juego
+int CheckWinner(Player**, int);
+int StarterPlayer(Player**, int);
+
+// Prototipo para terminar
 void FreeMemory(Ficha **, Player **, int, int);
 
 int main(void) {
@@ -56,6 +64,7 @@ void Domino() {
 	if(py == 1) {
 		return;
 	}
+
 	// Generacion de jugadores
 	Player **jugadores = InitializePlayers(py);
 	
@@ -71,6 +80,12 @@ void Domino() {
 
 	// Impresion de fichas sin agarrar
 	ImpresionFichas(fichas, cantidad);
+
+	// Juego Domino
+	printf("Comienza el jugador %d!\n", StarterPlayer(jugadores, py) + 1);
+	/*while(!CheckWinner(jugadores, py)) {
+		
+	}*/
 
 	// Liberacion de memoria
 	FreeMemory(fichas, jugadores, cantidad, py);
@@ -188,4 +203,29 @@ void FreeMemory(Ficha **fichas, Player **jugadores, int cantidad, int py) {
 		free(fichas[i]);
 	}
 	free(fichas);
+}
+
+int CheckWinner(Player **jugadores, int py) {
+	for(int i = 0; i < py; i++) {
+		if(jugadores[i]->fichasPerPlayer == 0) {
+			return i; // Se regresa el index del ganador
+		}
+	}
+	return 0; // Mientras sea 0 el juego continua
+}
+
+int StarterPlayer(Player **jugadores, int py) {
+	int doble = 6;
+	//int index = 0;
+	for(int k = 6; k > 0; k--) {
+		for(int i = 0; i < py; i++) {
+			for(int j = 0; j < 7; j++) {
+				// Verificacion del jugador con el doble mas alto
+				if(jugadores[i]->fichasPerPlayer[j]->value[0] == k && jugadores[i]->fichasPerPlayer[j]->value[1] == k) {
+					return i;
+				}
+			}
+		}
+	}
+	
 }
