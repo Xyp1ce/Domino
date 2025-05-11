@@ -31,6 +31,7 @@ void ClearBuffer();
 Ficha **Initialize(int);
 int Repartir(Ficha**, Player**, int, int);
 Player **InitializePlayers(int);
+Ficha **Desplazamiento(Ficha **, int, int);
 
 int main(void) {
 	srand(time(NULL));
@@ -149,19 +150,10 @@ int Repartir(Ficha **fichas, Player **jugador, int py, int cantidad) {
             // Liberar la ficha seleccionada
             free(fichas[indexFicha]);
 
-            // Mover las fichas restantes
-            for (int k = indexFicha; k < cantidad - 1; k++) {
-                fichas[k] = fichas[k + 1];
-            }
-
+            // Mover y redimensionar las fichas
+			fichas = Desplazamiento(fichas, cantidad, indexFicha);
+			// Reducir cantidad
             cantidad--;
-
-            // Redimensionar el arreglo
-            Ficha **aux = NULL;
-            if (aux == NULL && cantidad > 0) {
-                aux = realloc(fichas, cantidad * sizeof(Ficha *));
-            }
-            fichas = aux;
         }
     }
 	return cantidad;
@@ -170,4 +162,17 @@ int Repartir(Ficha **fichas, Player **jugador, int py, int cantidad) {
 void ClearBuffer(){
     char c;
 	while((c = getchar() ) != '\n' && c != EOF);
+}
+
+Ficha **Desplazamiento(Ficha **Dezplazar, int cantidad, int index) {
+	// Desplzar fichas
+	for(int i = index; i < cantidad - 1; i++) {
+		Dezplazar[i] = Dezplazar[i + 1];
+	}
+	// Redimensionar el arreglo
+    Ficha **aux = NULL;
+    if (aux == NULL && cantidad > 1) {
+        aux = realloc(Dezplazar, (cantidad-1) * sizeof(Ficha *));
+    }
+	return aux;
 }
