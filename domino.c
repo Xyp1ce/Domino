@@ -50,6 +50,8 @@ int SelectFicha(Player **, int);
 void UpdateTablero(Tablero **, Player **, int , int, int);
 int CheckPieza(Player**, int, int, Tablero**);
 int SearchPieza(Player**, Tablero**, int);
+void EatPieza(Player **, Ficha ***, Tablero **, int , int *);
+void ShowTablero(Tablero**);
 
 // Prototipo para terminar
 void FreeMemory(Ficha **, Player **, Tablero**, int, int);
@@ -89,22 +91,14 @@ void Domino() {
 	// Repartir fichas
 	cantidad = Repartir(fichas, jugadores, py, cantidad);
 
-	for(int i = 0; i < py; i++) {
-		printf("Jugador %d\n", i + 1);
-		for(int j = 0; j < 7; j++) {
-			printf("%d - %d", (jugadores[i])->fichasPerPlayer[j]->value[0], (jugadores[i])->fichasPerPlayer[j]->value[1]);
-			printf("\n");
-		}
-	}
-
 	// Impresion de fichas sin agarrar
-	ImpresionFichas(fichas, cantidad);
+	// ImpresionFichas(fichas, cantidad);
 
 	// Juego Domino
 
 	// Decidir jugador inicial
 	int pos = StarterPlayer(jugadores, py);
-	printf("Comienza el jugador %d!\n", pos + 1);
+	printf("\nComienza el jugador %d!\n", pos + 1);
 
 	// Establecer orden
 	int orden[py];
@@ -113,26 +107,40 @@ void Domino() {
 		printf("%d.- Jugador %d\n", i + 1, orden[i] + 1);
 	}
 
-	// Buscar ficha
-	if(SearchPieza(jugadores, tablero, orden[0])) {
-		// Seleccion de ficha a jugar del jugador
-		int ficha = SelectFicha(jugadores, orden[0]);
-		// Comprobacion de ficha
-		int lado = CheckPieza(jugadores, orden[0], ficha, tablero);
-		// Actualizacion del tablero
-		UpdateTablero(tablero, jugadores, ficha, orden[0], lado);
-	}
+	int turno = orden[0];
 
-	/*while(!CheckWinner(jugadores, py)) {
-		
-	}*/
+	while(!CheckWinner(jugadores, py)) {
+		// Buscar ficha
+		int i = 0;
+		turno = (turno + i) % 4;
+		if(!SearchPieza(jugadores, tablero, turno)) {
+			// Si no hay ficha para jugar entonces se come una ficha
+			EatPieza(jugadores, &fichas, tablero, turno, &cantidad);
+		}
+		// Seleccion de ficha a jugar del jugador
+		int ficha = SelectFicha(jugadores, turno);
+		// Comprobacion de ficha
+		int lado = CheckPieza(jugadores, turno, ficha, tablero);
+		// Si CheckPieza retorna 0 entonces la ficha seleccionada no es valida
+		while(!lado) {
+			ShowTablero(tablero);
+			printf("Selecciona otra ficha\n");
+			ficha = SelectFicha(jugadores, turno);
+			lado = CheckPieza(jugadores, turno, ficha, tablero);
+		}
+		// Actualizacion del tablero
+		UpdateTablero(tablero, jugadores, ficha, turno, lado);
+
+		printf("\nTurno finalizado\n\n");
+		i++;
+	}
 
 	// Liberacion de memoria
 	FreeMemory(fichas, jugadores, tablero, cantidad, py);
 }
 
 Player **InitializePlayers(int py) {
-	printf("Inicializando jugadores\n");
+	//printf("\nInicializando jugadores\n");
 	Player **jugador = (Player **)malloc(py * sizeof(Player *)); // Generamos un arreglo dinamico dependiendo de la cantidad de jugadores
 	for(int i = 0; i < py; i++) { 
 		jugador[i] = (Player *)malloc(sizeof(Player)); // Asignamos memoria para cada jugador para almacenar un estructura de tipo Player
@@ -154,7 +162,7 @@ Tablero **InitializeTablero() {
 }
 
 Ficha **Initialize(int cantidad) {
-	printf("Inicializando Fichas\n");
+	//printf("\nInicializando Fichas\n");
 	Ficha **fichas = (Ficha**)malloc(cantidad * sizeof(Ficha*));
 	for(int i = 0; i < cantidad; i++) {
 		fichas[i] = (Ficha*)malloc(sizeof(Ficha));
@@ -176,7 +184,7 @@ int Random(int cantidad) {
 }
 
 int Repartir(Ficha **fichas, Player **jugador, int py, int cantidad) {
-    printf("Repartiendo Fichas\n");
+    //printf("\nRepartiendo Fichas\n");
     int fichasPorJugador = 7;
 
     for (int i = 0; i < py; i++) {
@@ -218,12 +226,12 @@ Ficha **Desplazamiento(Ficha **Dezplazar, int cantidad, int index) {
 
 void ImpresionFichas(Ficha **fichas, int cantidad) {
 	if (fichas != NULL && cantidad > 0) {
-    printf("Fichas sin jugar: %d\n", cantidad);
+    printf("\nFichas sin jugar: %d\n", cantidad);
     for (int i = 0; i < cantidad; i++) {
         printf("%d - %d\n", fichas[i]->value[0], fichas[i]->value[1]);
     }
 	} else {
-    printf("No hay fichas sin jugar.\n");
+    printf("\nNo hay fichas sin jugar.\n");
 	}
 }
 
@@ -277,11 +285,12 @@ int StarterPlayer(Player **jugadores, int py) {
 
 int SelectFicha(Player **jugadores, int pos) {
 	int ficha = 0;
-	printf("Jugador %d\n", pos + 1);
-	for(int j = 0; j < 7; j++) {
+	printf("\nJugador %d\n", pos + 1);
+	for(int j = 0; j < jugadores[pos]->cantidad; j++) {
 		printf("[%d] %d - %d", j, jugadores[pos]->fichasPerPlayer[j]->value[0], jugadores[pos]->fichasPerPlayer[j]->value[1]);
 		printf("\n");
 	}
+	printf("\nSelecciona tu ficha a jugar\n>> ");
 	scanf("%d", &ficha);
 	ClearBuffer();
 	return ficha;
@@ -297,28 +306,40 @@ void UpdateTablero(Tablero **tablero, Player **jugador, int fichaIndex, int pos,
     (*tablero)->fichasEnTablero = aux;
 
     // Inserta al inicio o al final
-    if (lado == 1) { // Inserta al inicio
-        for (int i = (*tablero)->cantidad; i > 0; i--) {
-            (*tablero)->fichasEnTablero[i] = (*tablero)->fichasEnTablero[i - 1];
-        }
-		(*tablero)->fichasEnTablero[0] = malloc(sizeof(Ficha));
-        *((*tablero)->fichasEnTablero[0]) = *(jugador[pos]->fichasPerPlayer[fichaIndex]);
-    } else { // Inserta al final
-		(*tablero)->fichasEnTablero[(*tablero)->cantidad] = malloc(sizeof(Ficha));
-        *((*tablero)->fichasEnTablero[(*tablero)->cantidad]) = *(jugador[pos]->fichasPerPlayer[fichaIndex]);
-    }
+    if (lado == 1) {
+    	for (int i = (*tablero)->cantidad; i > 0; i--) {
+        	(*tablero)->fichasEnTablero[i] = (*tablero)->fichasEnTablero[i - 1];
+    	}
+    	(*tablero)->fichasEnTablero[0] = malloc(sizeof(Ficha));
+    	*((*tablero)->fichasEnTablero[0]) = *(jugador[pos]->fichasPerPlayer[fichaIndex]);
+
+    	if ((*tablero)->fichasEnTablero[0]->value[1] != (*tablero)->fichasEnTablero[1]->value[0] && (*tablero)->cantidad > 0) {
+        	int aux = (*tablero)->fichasEnTablero[0]->value[0];
+        	(*tablero)->fichasEnTablero[0]->value[0] = (*tablero)->fichasEnTablero[0]->value[1];
+        	(*tablero)->fichasEnTablero[0]->value[1] = aux;
+    	}
+	} else {
+    	(*tablero)->fichasEnTablero[(*tablero)->cantidad] = malloc(sizeof(Ficha));
+    	*((*tablero)->fichasEnTablero[(*tablero)->cantidad]) = *(jugador[pos]->fichasPerPlayer[fichaIndex]);
+    	if ((*tablero)->fichasEnTablero[(*tablero)->cantidad - 1]->value[1] != (*tablero)->fichasEnTablero[(*tablero)->cantidad]->value[0] && (*tablero)->cantidad > 0) {
+        	int aux = (*tablero)->fichasEnTablero[(*tablero)->cantidad]->value[0];
+        	(*tablero)->fichasEnTablero[(*tablero)->cantidad]->value[0] = (*tablero)->fichasEnTablero[(*tablero)->cantidad]->value[1];
+        	(*tablero)->fichasEnTablero[(*tablero)->cantidad]->value[1] = aux;
+    	}
+	}
+
 
     (*tablero)->cantidad++;
 
    // Imprimimos el tablero
-   printf("Tablero Actual\n");
+   printf("\nTablero Actual\n");
    for(int i = 0; i < (*tablero)->cantidad; i++) {
 		printf("[%d-%d] ", (*tablero)->fichasEnTablero[i]->value[0], (*tablero)->fichasEnTablero[i]->value[1]);
    }
    printf("\n");
 
    // Eliminar ficha del jugador
-   printf("Eliminando ficha del jugador\n");
+   //printf("\nEliminando ficha del jugador\n");
    free(jugador[pos]->fichasPerPlayer[fichaIndex]);
    for(int i = fichaIndex; i < jugador[pos]->cantidad - 1; i++) {
 		jugador[pos]->fichasPerPlayer[i] = jugador[pos]->fichasPerPlayer[i + 1];
@@ -328,84 +349,120 @@ void UpdateTablero(Tablero **tablero, Player **jugador, int fichaIndex, int pos,
    jugador[pos]->cantidad--;
 
    // Realocacion de memoria
-   printf("Realocando memoria\n");
+   //printf("\nRealocando memoria\n");
    aux = NULL;
    while(!aux) {
 		aux = realloc(jugador[pos]->fichasPerPlayer, jugador[pos]->cantidad * sizeof(Ficha*));
    }
    jugador[pos]->fichasPerPlayer = aux;
-   printf("Memoria Realocada\n");
-
-   // Impresion de las fichas del jugador fines demostrativos
-   for(int i = 0; i < jugador[pos]->cantidad; i++) {
-		printf("%d - %d\n", jugador[pos]->fichasPerPlayer[i]->value[0], jugador[pos]->fichasPerPlayer[i]->value[1]);
-   }
+   //printf("\nMemoria Realocada\n");
 }
 
 int CheckPieza(Player **jugador, int pos, int ficha, Tablero **tablero) {
-	if((*tablero)->cantidad == 0) {
-		return 1; // Primer turno: se puede jugar
+	if ((*tablero)->cantidad == 0) {
+		return 1; // Primer turno: se puede jugar, por default a la izquierda
 	}
 
-	// Banderas de posibilidad
-	int left = 0, right = 0;
+	// Obtener valores de la ficha del jugador
+	int jugadorLado0 = jugador[pos]->fichasPerPlayer[ficha]->value[0];
+	int jugadorLado1 = jugador[pos]->fichasPerPlayer[ficha]->value[1];
+
+	// Obtener valores de los extremos del tablero
+	int tableroIzq = (*tablero)->fichasEnTablero[0]->value[0];
+	int tableroDer = (*tablero)->fichasEnTablero[(*tablero)->cantidad - 1]->value[1];
+
+	// Banderas
+	int puedeIzquierda = 0;
+	int puedeDerecha = 0;
 	int opc;
 
-	// Valores de la ficha del jugador
-	int jugadorLado1 = jugador[pos]->fichasPerPlayer[ficha]->value[0];
-	int jugadorLado2 = jugador[pos]->fichasPerPlayer[ficha]->value[1];
-
-	// Comparar con la última ficha del tablero (lado derecho)
-	int tableroDer1 = (*tablero)->fichasEnTablero[(*tablero)->cantidad - 1]->value[0];
-	int tableroDer2 = (*tablero)->fichasEnTablero[(*tablero)->cantidad - 1]->value[1];
-
-	if (jugadorLado1 == tableroDer1 || jugadorLado1 == tableroDer2 || jugadorLado2 == tableroDer1 || jugadorLado2 == tableroDer2) {
-		right = 1;
+	// Comparar con izquierda
+	if (jugadorLado0 == tableroIzq || jugadorLado1 == tableroIzq) {
+		puedeIzquierda = 1;
 	}
 
-	// Comparar con la primera ficha del tablero (lado izquierdo)
-	int tableroIzq1 = (*tablero)->fichasEnTablero[0]->value[0];
-	int tableroIzq2 = (*tablero)->fichasEnTablero[0]->value[1];
-
-	if (jugadorLado1 == tableroIzq1 || jugadorLado1 == tableroIzq2 || jugadorLado2 == tableroIzq1 || jugadorLado2 == tableroIzq2) {
-		left = 1;
+	// Comparar con derecha
+	if (jugadorLado0 == tableroDer || jugadorLado1 == tableroDer) {
+		puedeDerecha = 1;
 	}
 
-	// Se puede jugar en ambos extremos
-	if (left && right) {
+	printf("Puede izquierda: %d\n", puedeIzquierda);
+	printf("Puede derecha : %d\n", puedeDerecha);
+
+	// Ambos lados posibles
+	if (puedeIzquierda && puedeDerecha) {
 		do {
-			printf("¿De qué lado quiere jugar la ficha?\n [1] Izquierda [2] Derecha\n");
+			printf("\n¿De qué lado quiere jugar la ficha?\n [1] Izquierda [2] Derecha\n>> ");
 			scanf("%d", &opc);
 			ClearBuffer();
 		} while (opc != 1 && opc != 2);
-		return opc; // 1 para izquierda, 2 para derecha
+		return opc; // 1 = izquierda, 2 = derecha
 	}
 
-	// Solo se puede jugar en un extremo
-	if (left) 
-		return 1;
-	if (right) 
-		return 2;
+	// Solo un lado
+	if (puedeIzquierda) return 1;
+	if (puedeDerecha) return 2;
 
 	return 0; // No se puede jugar
 }
 
 int SearchPieza(Player **jugador, Tablero **tablero, int pos) {
-	// Funcion para revisar si hay una ficha disponible para jugar
-	if((*tablero)->cantidad == 0)
-		return 1; // Omitimos el primer turno
-	int bandera = 0;
-	for(int i = 0; i < jugador[pos]->cantidad; i++) {
-		int fichaJugadorV0 = jugador[pos]->fichasPerPlayer[i]->value[0]; 
-		int fichaJugadorV1 = jugador[pos]->fichasPerPlayer[i]->value[1]; 
-		for(int j = 0; j < (*tablero)->cantidad; j++) {
-			int fichaTableroV0 = (*tablero)->fichasEnTablero[j]->value[0];
-			int fichaTableroV1 = (*tablero)->fichasEnTablero[j]->value[1];
-			if(fichaJugadorV0 == fichaTableroV0 || fichaJugadorV0 == fichaTableroV1 || fichaJugadorV1 == fichaTableroV0 || fichaTableroV1)
-				bandera = 1;
+	if ((*tablero)->cantidad == 0)
+		return 1; // Primer turno, puede jugar cualquier ficha
+
+	int izquierda = (*tablero)->fichasEnTablero[0]->value[0];
+	int derecha = (*tablero)->fichasEnTablero[(*tablero)->cantidad - 1]->value[1];
+
+	for (int i = 0; i < jugador[pos]->cantidad; i++) {
+		int v0 = jugador[pos]->fichasPerPlayer[i]->value[0];
+		int v1 = jugador[pos]->fichasPerPlayer[i]->value[1];
+
+		if (v0 == izquierda || v1 == izquierda || v0 == derecha || v1 == derecha) {
+			return 1; // Puede jugar
 		}
-	}	
-	// Si hay al menos una ficha para jugar, bandera vuelve 1, si no hay nada entonces se queda en 0
-	printf("%d\n", bandera);
-	return bandera;
+	}
+	return 0; // No puede jugar
+}
+
+
+void EatPieza(Player **jugador, Ficha ***fichas, Tablero **tablero, int pos, int *cantidad) {
+	if (*cantidad <= 0) {
+		printf("No hay más fichas para tomar.\n");
+		return;
+	}
+
+	// Aumentar el tamaño del arreglo del jugador
+	Ficha **aux = NULL;
+	while(!aux) {
+		aux = realloc(jugador[pos]->fichasPerPlayer, (jugador[pos]->cantidad + 1) * sizeof(Ficha*));
+	}
+	jugador[pos]->fichasPerPlayer = aux;
+
+	// Tomar una ficha aleatoria
+	int indexFicha = Random(*cantidad);
+	jugador[pos]->fichasPerPlayer[jugador[pos]->cantidad] = malloc(sizeof(Ficha));
+	*(jugador[pos]->fichasPerPlayer[jugador[pos]->cantidad]) = *(*fichas)[indexFicha];
+	jugador[pos]->cantidad++;
+
+	// Eliminar ficha del montón
+	free((*fichas)[indexFicha]);
+	for (int i = indexFicha; i < *cantidad - 1; i++) {
+		(*fichas)[i] = (*fichas)[i + 1];
+	}
+	*cantidad -= 1;
+	*fichas = realloc(*fichas, (*cantidad) * sizeof(Ficha*));
+
+	// Si aún no puede jugar, repetir
+	if (!SearchPieza(jugador, tablero, pos)) {
+		EatPieza(jugador, fichas, tablero, pos, cantidad);
+	}
+}
+
+
+void ShowTablero(Tablero **tablero) {
+	printf("\nTablero Actual\n");
+	for(int i = 0; i < (*tablero)->cantidad; i++) {
+		printf("[%d-%d] ", (*tablero)->fichasEnTablero[i]->value[0],(*tablero)->fichasEnTablero[i]->value[1]);
+	}
+	printf("\n");
 }
