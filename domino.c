@@ -23,6 +23,7 @@ typedef struct {
 
 typedef struct {
 	Ficha **fichasPerPlayer;
+	int cantidad;
 } Player;
 
 typedef struct {
@@ -48,7 +49,8 @@ void ImpresionFichas(Ficha **, int);
 int CheckWinner(Player**, int);
 int StarterPlayer(Player**, int);
 int SelectFicha(Player **, int);
-void UpdateTablero(Tablero **, int , Player **, int , int, int, int);
+void UpdateTablero(Tablero **, Player **, int , int, int);
+int CheckPieza(Player**, int, int, Tablero**);
 
 // Prototipo para terminar
 void FreeMemory(Ficha **, Player **, int, int);
@@ -101,8 +103,6 @@ void Domino() {
 
 	// Juego Domino
 
-	int cantJ1 = 7, cantJ2 = 7, cantJ3 = 7, cantJ7 = 7;
-
 	// Decidir jugador inicial
 	int pos = StarterPlayer(jugadores, py);
 	printf("Comienza el jugador %d!\n", pos + 1);
@@ -115,10 +115,9 @@ void Domino() {
 	}
 
 	// Seleccion de ficha a jugar del jugador
-	int ficha = 0;
-	ficha = SelectFicha(jugadores, 0);
-	int lado = 0;
-	UpdateTablero(tablero, size, jugadores, ficha, orden[0], cantJ1, lado);
+	int ficha = SelectFicha(jugadores, orden[0]);
+	int lado = CheckPieza(jugadores, orden[0], ficha, tablero);
+	UpdateTablero(tablero, jugadores, ficha, orden[0], lado);
 	/*while(!CheckWinner(jugadores, py)) {
 		
 	}*/
@@ -137,6 +136,7 @@ Player **InitializePlayers(int py) {
 		for(int j = 0; j < 7; j++) {
 			jugador[i]->fichasPerPlayer[j] = (Ficha*)malloc(sizeof(Ficha)); // Generamos espacio para 7 fichas por jugador
 		}
+		jugador[i]->cantidad = 7;
 	}
 	return jugador;
 }
@@ -241,7 +241,7 @@ void FreeMemory(Ficha **fichas, Player **jugadores, int cantidad, int py) {
 
 int CheckWinner(Player **jugadores, int py) {
 	for(int i = 0; i < py; i++) {
-		if(jugadores[i]->fichasPerPlayer == NULL) {
+		if(jugadores[i]->cantidad == 0) {
 			return i; // Se regresa el index del ganador
 		}
 	}
@@ -249,7 +249,6 @@ int CheckWinner(Player **jugadores, int py) {
 }
 
 int StarterPlayer(Player **jugadores, int py) {
-	int doble = 6;
 	//int index = 0;
 	for(int k = 6; k > 0; k--) {
 		for(int i = 0; i < py; i++) {
@@ -275,45 +274,108 @@ int SelectFicha(Player **jugadores, int pos) {
 	return ficha;
 }
 
-void UpdateTablero(Tablero **tablero, int size, Player **jugador, int fichaIndex, int pos, int cant, int lado) {
+void UpdateTablero(Tablero **tablero, Player **jugador, int fichaIndex, int pos, int lado) {
     Ficha *fichaSeleccionada = jugador[pos]->fichasPerPlayer[fichaIndex];
 
-    // Aumentar el tamaño del arreglo
-    (*tablero)->fichasEnTablero = realloc((*tablero)->fichasEnTablero, ((*tablero)->cantidad + 1) * sizeof(Ficha*));
+    // Aumentar el tamaño del arreglo del tablero
+    Ficha **nuevoTablero = realloc((*tablero)->fichasEnTablero, ((*tablero)->cantidad + 1) * sizeof(Ficha*));
+    if (!nuevoTablero) {
+        fprintf(stderr, "Error al asignar memoria al tablero.\n");
+        exit(EXIT_FAILURE);
+    }
+    (*tablero)->fichasEnTablero = nuevoTablero;
 
-    // Mover fichas si se inserta a la izquierda
-    if (lado == 0) {
+    // Inserta al inicio o al final
+    if (lado == 1) { // Inserta al inicio
         for (int i = (*tablero)->cantidad; i > 0; i--) {
             (*tablero)->fichasEnTablero[i] = (*tablero)->fichasEnTablero[i - 1];
         }
-        (*tablero)->fichasEnTablero[0] = malloc(sizeof(Ficha));
-        (*tablero)->fichasEnTablero[0]->value[0] = fichaSeleccionada->value[0];
-        (*tablero)->fichasEnTablero[0]->value[1] = fichaSeleccionada->value[1];
-    } else { // Insertar a la derecha
-        (*tablero)->fichasEnTablero[(*tablero)->cantidad] = malloc(sizeof(Ficha));
-        (*tablero)->fichasEnTablero[(*tablero)->cantidad]->value[0] = fichaSeleccionada->value[0];
-        (*tablero)->fichasEnTablero[(*tablero)->cantidad]->value[1] = fichaSeleccionada->value[1];
+        (*tablero)->fichasEnTablero[0] = fichaSeleccionada;
+    } else { // Inserta al final
+        (*tablero)->fichasEnTablero[(*tablero)->cantidad] = fichaSeleccionada;
     }
 
     (*tablero)->cantidad++;
 
     // Mostrar tablero
     printf("\nTablero actual:\n");
-    for (int i = 0; i < (*tablero)->cantidad; i++) {
+    for(int i = 0; i < (*tablero)->cantidad; i++) {
         printf("[%d-%d] ", (*tablero)->fichasEnTablero[i]->value[0], (*tablero)->fichasEnTablero[i]->value[1]);
     }
     printf("\n");
 
     // Eliminar ficha del jugador
+    printf("Eliminando ficha jugada\n");
     free(jugador[pos]->fichasPerPlayer[fichaIndex]);
-    for (int i = fichaIndex; i < cant - 1; i++) {
+
+    for(int i = fichaIndex; i < jugador[pos]->cantidad - 1; i++) {
         jugador[pos]->fichasPerPlayer[i] = jugador[pos]->fichasPerPlayer[i + 1];
     }
 
-    Ficha **nuevoArreglo = realloc(jugador[pos]->fichasPerPlayer, (cant - 1) * sizeof(Ficha*));
-    if (nuevoArreglo) {
-        jugador[pos]->fichasPerPlayer = nuevoArreglo;
-    } else {
-        fprintf(stderr, "Error: No se pudo redimensionar el arreglo de fichas.\n");
+    jugador[pos]->cantidad--;
+    printf("Cantidad de fichas restantes para el jugador %d: %d\n", pos + 1, jugador[pos]->cantidad);
+
+    // Mostrar fichas restantes del jugador
+    printf("Jugador %d\n", pos + 1);
+    for(int j = 0; j < jugador[pos]->cantidad; j++) {
+        printf("%d - %d\n", jugador[pos]->fichasPerPlayer[j]->value[0], jugador[pos]->fichasPerPlayer[j]->value[1]);
     }
+
+    // Realocación de memoria
+    printf("Realocación de memoria\n");
+    Ficha **aux = realloc(jugador[pos]->fichasPerPlayer, jugador[pos]->cantidad * sizeof(Ficha*));
+    if (!aux && jugador[pos]->cantidad > 0) {
+        fprintf(stderr, "Error al realocar fichas del jugador.\n");
+        exit(EXIT_FAILURE);
+    }
+    jugador[pos]->fichasPerPlayer = aux;
+}
+
+
+int CheckPieza(Player **jugador, int pos, int ficha, Tablero **tablero) {
+	if((*tablero)->cantidad == 0) {
+		return 1; // Primer turno: se puede jugar
+	}
+
+	// Banderas de posibilidad
+	int left = 0, right = 0;
+	int opc;
+
+	// Valores de la ficha del jugador
+	int jugadorLado1 = jugador[pos]->fichasPerPlayer[ficha]->value[0];
+	int jugadorLado2 = jugador[pos]->fichasPerPlayer[ficha]->value[1];
+
+	// Comparar con la última ficha del tablero (lado derecho)
+	int tableroDer1 = (*tablero)->fichasEnTablero[(*tablero)->cantidad - 1]->value[0];
+	int tableroDer2 = (*tablero)->fichasEnTablero[(*tablero)->cantidad - 1]->value[1];
+
+	if (jugadorLado1 == tableroDer1 || jugadorLado1 == tableroDer2 || jugadorLado2 == tableroDer1 || jugadorLado2 == tableroDer2) {
+		right = 1;
+	}
+
+	// Comparar con la primera ficha del tablero (lado izquierdo)
+	int tableroIzq1 = (*tablero)->fichasEnTablero[0]->value[0];
+	int tableroIzq2 = (*tablero)->fichasEnTablero[0]->value[1];
+
+	if (jugadorLado1 == tableroIzq1 || jugadorLado1 == tableroIzq2 || jugadorLado2 == tableroIzq1 || jugadorLado2 == tableroIzq2) {
+		left = 1;
+	}
+
+	// Se puede jugar en ambos extremos
+	if (left && right) {
+		do {
+			printf("¿De qué lado quiere jugar la ficha?\n [1] Izquierda [2] Derecha\n");
+			scanf("%d", &opc);
+			ClearBuffer();
+		} while (opc != 1 && opc != 2);
+		return opc; // 1 para izquierda, 2 para derecha
+	}
+
+	// Solo se puede jugar en un extremo
+	if (left) 
+		return 1;
+	if (right) 
+		return 2;
+
+	return 0; // No se puede jugar
 }
