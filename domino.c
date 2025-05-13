@@ -465,4 +465,4 @@ void ShowTablero(Tablero **tablero) {
 		printf("[%d-%d] ", (*tablero)->fichasEnTablero[i]->value[0],(*tablero)->fichasEnTablero[i]->value[1]);
 	}
 	printf("\n");
-}
+}	
