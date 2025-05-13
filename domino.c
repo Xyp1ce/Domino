@@ -49,6 +49,7 @@ int StarterPlayer(Player**, int);
 int SelectFicha(Player **, int);
 void UpdateTablero(Tablero **, Player **, int , int, int);
 int CheckPieza(Player**, int, int, Tablero**);
+int SearchPieza(Player**, Tablero**, int);
 
 // Prototipo para terminar
 void FreeMemory(Ficha **, Player **, Tablero**, int, int);
@@ -112,10 +113,15 @@ void Domino() {
 		printf("%d.- Jugador %d\n", i + 1, orden[i] + 1);
 	}
 
-	// Seleccion de ficha a jugar del jugador
-	int ficha = SelectFicha(jugadores, orden[0]);
-	int lado = CheckPieza(jugadores, orden[0], ficha, tablero);
-	UpdateTablero(tablero, jugadores, ficha, orden[0], lado);
+	// Buscar ficha
+	if(SearchPieza(jugadores, tablero, orden[0])) {
+		// Seleccion de ficha a jugar del jugador
+		int ficha = SelectFicha(jugadores, orden[0]);
+		// Comprobacion de ficha
+		int lado = CheckPieza(jugadores, orden[0], ficha, tablero);
+		// Actualizacion del tablero
+		UpdateTablero(tablero, jugadores, ficha, orden[0], lado);
+	}
 
 	/*while(!CheckWinner(jugadores, py)) {
 		
@@ -222,7 +228,6 @@ void ImpresionFichas(Ficha **fichas, int cantidad) {
 }
 
 void FreeMemory(Ficha **fichas, Player **jugadores, Tablero **tablero, int cantidad, int py) {
-
 	// Liberacion de jugadores
 	for(int i = 0; i < py; i++) {
 		for(int j = 0; j < jugadores[i]->cantidad; j++) {
@@ -383,4 +388,24 @@ int CheckPieza(Player **jugador, int pos, int ficha, Tablero **tablero) {
 		return 2;
 
 	return 0; // No se puede jugar
+}
+
+int SearchPieza(Player **jugador, Tablero **tablero, int pos) {
+	// Funcion para revisar si hay una ficha disponible para jugar
+	if((*tablero)->cantidad == 0)
+		return 1; // Omitimos el primer turno
+	int bandera = 0;
+	for(int i = 0; i < jugador[pos]->cantidad; i++) {
+		int fichaJugadorV0 = jugador[pos]->fichasPerPlayer[i]->value[0]; 
+		int fichaJugadorV1 = jugador[pos]->fichasPerPlayer[i]->value[1]; 
+		for(int j = 0; j < (*tablero)->cantidad; j++) {
+			int fichaTableroV0 = (*tablero)->fichasEnTablero[j]->value[0];
+			int fichaTableroV1 = (*tablero)->fichasEnTablero[j]->value[1];
+			if(fichaJugadorV0 == fichaTableroV0 || fichaJugadorV0 == fichaTableroV1 || fichaJugadorV1 == fichaTableroV0 || fichaTableroV1)
+				bandera = 1;
+		}
+	}	
+	// Si hay al menos una ficha para jugar, bandera vuelve 1, si no hay nada entonces se queda en 0
+	printf("%d\n", bandera);
+	return bandera;
 }
