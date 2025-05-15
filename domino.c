@@ -105,14 +105,29 @@ void Domino() {
 		printf("%d.- Jugador %d\n", i + 1, orden[i] + 1);
 	}
 
+	int pasar = 0;
 	int turno = orden[0];
 	int i = 0;
+
 	while(!CheckWinner(jugadores, turno)) {
 		turno = (turno + i) % py;	
 		// Buscar ficha
 		if(!SearchPieza(jugadores, tablero, turno)) {
 			// Si no hay ficha para jugar entonces se come una ficha
 			EatPieza(jugadores, &fichas, tablero, turno, &cantidad);
+		}
+		// Si ya no fichas para comer y el jugador no tiene fichas para jugar
+		// pasamos el turno al siguiente jugador
+		if(!SearchPieza(jugadores, tablero, turno) && cantidad == 0){
+			pasar++;
+			printf("El jugador %d pasa turno\n", turno + 1);
+			continue;
+		} else {
+			pasar = 0;
+		}
+		if(pasar == py){
+			printf("Empate!!\n");
+			break;
 		}
 		// Seleccion de ficha a jugar del jugador
 		int ficha = SelectFicha(jugadores, turno);
@@ -292,7 +307,7 @@ int SelectFicha(Player **jugadores, int pos) {
 		printf("\nSelecciona tu ficha a jugar\n>>");
 		scanf("%d", &ficha);
 		ClearBuffer();
-	}while(ficha < 0 || ficha > jugadores[pos]->cantidad);
+	}while(ficha < 0 || ficha >= jugadores[pos]->cantidad);
 	return ficha;
 }
 
