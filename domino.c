@@ -15,7 +15,6 @@
 // Estructuras
 typedef struct {
 	int value[2];
-	int cantidad;
 } Ficha;
 
 typedef struct {
@@ -70,7 +69,7 @@ void Domino() {
 		printf("[1] Salir [2] 2 jugadores [3] 3 Jugadores [4] 4 Jugadores\n>> ");
 		scanf("%d", &py);
 		ClearBuffer();
-	}while(py >= 5);
+	}while(py > 4 || py < 1);
 
 	if(py == 1) {
 		return;
@@ -107,11 +106,10 @@ void Domino() {
 	}
 
 	int turno = orden[0];
-
-	while(!CheckWinner(jugadores, py)) {
+	int i = 0;
+	while(!CheckWinner(jugadores, turno)) {
+		turno = (turno + i) % py;	
 		// Buscar ficha
-		int i = 0;
-		turno = (turno + i) % 4;
 		if(!SearchPieza(jugadores, tablero, turno)) {
 			// Si no hay ficha para jugar entonces se come una ficha
 			EatPieza(jugadores, &fichas, tablero, turno, &cantidad);
@@ -131,7 +129,7 @@ void Domino() {
 		UpdateTablero(tablero, jugadores, ficha, turno, lado);
 
 		printf("\nTurno finalizado\n\n");
-		i++;
+		i = 1; 
 	}
 
 	// Liberacion de memoria
@@ -153,6 +151,7 @@ Player **InitializePlayers(int py) {
 }
 
 Tablero *InitializeTablero() {
+	//printf("Iniciando Tablero\n");	
 	Tablero *tablero = (Tablero*)malloc(sizeof(Tablero));
 	tablero->fichasEnTablero = NULL;
 	tablero->cantidad = 0;
@@ -174,7 +173,6 @@ Ficha **Initialize(int cantidad) {
             index++;
         }
     }
-    (*fichas)->cantidad = 28;
 	return fichas;
 }
 
@@ -184,7 +182,7 @@ int Random(int cantidad) {
 
 int Repartir(Ficha **fichas, Player **jugador, int py, int cantidad) {
     //printf("\nRepartiendo Fichas\n");
-    int fichasPorJugador = 7;
+    int fichasPorJugador = cantidad/4;
 
     for (int i = 0; i < py; i++) {
         for (int j = 0; j < fichasPorJugador && cantidad > 0; j++) {
@@ -197,8 +195,8 @@ int Repartir(Ficha **fichas, Player **jugador, int py, int cantidad) {
             free(fichas[indexFicha]);
 
             // Mover y redimensionar las fichas
-			fichas = Desplazamiento(fichas, cantidad, indexFicha);
-			// Reducir cantidad
+	    fichas = Desplazamiento(fichas, cantidad, indexFicha);
+	    // Reducir cantidad
             cantidad--;
         }
     }
@@ -261,11 +259,10 @@ void FreeMemory(Ficha **fichas, Player **jugadores, Tablero *tablero, int cantid
 	free(tablero);
 }
 
-int CheckWinner(Player **jugadores, int py) {
-	for(int i = 0; i < py; i++) {
-		if(jugadores[i]->cantidad == 0) {
-			return i; // Se regresa el index del ganador
-		}
+int CheckWinner(Player **jugadores, int pos) {
+	if(jugadores[pos]->cantidad == 0) {
+		printf("Gano el jugador %d!!!\n", pos + 1);
+		return 1; // Se regresa el index del ganador
 	}
 	return 0; // Mientras sea 0 el juego continua
 }
@@ -291,9 +288,11 @@ int SelectFicha(Player **jugadores, int pos) {
 		printf("[%d] %d - %d", j, jugadores[pos]->fichasPerPlayer[j]->value[0], jugadores[pos]->fichasPerPlayer[j]->value[1]);
 		printf("\n");
 	}
-	printf("\nSelecciona tu ficha a jugar\n>> ");
-	scanf("%d", &ficha);
-	ClearBuffer();
+	do {
+		printf("\nSelecciona tu ficha a jugar\n>>");
+		scanf("%d", &ficha);
+		ClearBuffer();
+	}while(ficha < 0 || ficha > jugadores[pos]->cantidad);
 	return ficha;
 }
 
@@ -387,8 +386,8 @@ int CheckPieza(Player **jugador, int pos, int ficha, Tablero *tablero) {
 		puedeDerecha = 1;
 	}
 
-	printf("Puede izquierda: %d\n", puedeIzquierda);
-	printf("Puede derecha : %d\n", puedeDerecha);
+	//printf("Puede izquierda: %d\n", puedeIzquierda);
+	//printf("Puede derecha : %d\n", puedeDerecha);
 
 	// Ambos lados posibles
 	if (puedeIzquierda && puedeDerecha) {
