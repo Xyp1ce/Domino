@@ -2,6 +2,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "Fichas.h"
+#include "struct.h"
+#include "Utility.h"
 
 #define MAX_VALOR 6
 

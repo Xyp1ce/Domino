@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "Domino.h"
+#include "Struct.h"
 #include "Player.h"
 #include "Fichas.h"
 #include "Tablero.h"

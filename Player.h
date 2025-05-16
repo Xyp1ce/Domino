@@ -3,14 +3,7 @@
 #ifndef _PLAYER_H
 #define _PLAYER_H
 
-#include "Fichas.h"
-
-typedef struct Tablero Tablero;
-
-typedef struct Player {
-    Ficha **fichasPerPlayer;
-    int cantidad;
-} Player;
+#include "struct.h"
 
 Player **InitializePlayers(int py);
 int Repartir(Ficha **fichas, Player **jugador, int py, int cantidad);
