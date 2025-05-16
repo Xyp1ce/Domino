@@ -3,9 +3,7 @@
 #ifndef _FICHAS_H
 #define _FICHAS_H
 
-typedef struct {
-    int value[2];
-} Ficha;
+#include "struct.h"
 
 Ficha **Initialize(int cantidad);
 Ficha **Desplazamiento(Ficha **, int, int);

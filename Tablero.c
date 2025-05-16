@@ -3,8 +3,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "Tablero.h"
+#include "struct.h"
 #include "Player.h"
 #include "Fichas.h"
+#include "Utility.h"
 
 Tablero *InitializeTablero() {
     Tablero *tablero = (Tablero *)malloc(sizeof(Tablero));
