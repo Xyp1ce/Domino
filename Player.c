@@ -135,4 +135,3 @@ int CheckWinner(Player **jugadores, int pos) {
     }
     return 0;
 }
-

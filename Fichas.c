@@ -42,4 +42,3 @@ void ImpresionFichas(Ficha **fichas, int cantidad) {
         printf("\nNo hay fichas sin jugar.\n");
     }
 }
-

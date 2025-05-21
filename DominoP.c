@@ -75,4 +75,3 @@ void Domino() {
     ImpresionFichas(fichas, cantidad);
     FreeMemory(fichas, jugadores, tablero, cantidad, py);
 }
-

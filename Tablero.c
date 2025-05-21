@@ -75,4 +75,3 @@ void UpdateTablero(Tablero *tablero, Player **jugador, int fichaIndex, int pos, 
     }
     jugador[pos]->fichasPerPlayer = aux;
 }
-

@@ -31,5 +31,3 @@ void FreeMemory(Ficha **fichas, Player **jugadores, Tablero *tablero, int cantid
     free(tablero->fichasEnTablero);
     free(tablero);
 }
-
-

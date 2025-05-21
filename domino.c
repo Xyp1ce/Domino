@@ -18,4 +18,3 @@ int main(void) {
 	Domino();
 	return 0;
 }
-
