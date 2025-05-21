@@ -28,7 +28,12 @@ Ficha **Desplazamiento(Ficha **fichas, int cantidad, int index) {
     for (int i = index; i < cantidad - 1; i++) {
         fichas[i] = fichas[i + 1];
     }
-    fichas = realloc(fichas, (cantidad - 1) * sizeof(Ficha*));
+    if(cantidad > 0) {
+        fichas = realloc(fichas, (cantidad - 1) * sizeof(Ficha*));
+    } else {
+        free(fichas);
+        fichas = NULL;
+    }
     return fichas;
 }
 
@@ -42,4 +47,3 @@ void ImpresionFichas(Ficha **fichas, int cantidad) {
         printf("\nNo hay fichas sin jugar.\n");
     }
 }
-

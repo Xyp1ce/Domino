@@ -43,7 +43,7 @@ int StarterPlayer(Player **jugadores, int py) {
             }
         }
     }
-    return 0; // fallback
+    return 0; 
 }
 
 int CheckPieza(Player **jugador, int pos, int ficha, Tablero *tablero) {
@@ -78,26 +78,30 @@ void EatPieza(Player **jugador, Ficha ***fichas, Tablero *tablero, int pos, int 
         printf("No hay más fichas para tomar.\n");
         return;
     }
-    Ficha **aux = NULL;
-    while (!aux) {
-        aux = realloc(jugador[pos]->fichasPerPlayer, (jugador[pos]->cantidad + 1) * sizeof(Ficha *));
-    }
+
+    // Aumentar el tamaño del arreglo del jugador
+    Ficha **aux = realloc(jugador[pos]->fichasPerPlayer, (jugador[pos]->cantidad + 1) * sizeof(Ficha *));
     jugador[pos]->fichasPerPlayer = aux;
 
+    // Tomar una ficha aleatoria
     int indexFicha = Random(*cantidad);
     jugador[pos]->fichasPerPlayer[jugador[pos]->cantidad] = malloc(sizeof(Ficha));
     *(jugador[pos]->fichasPerPlayer[jugador[pos]->cantidad]) = *(*fichas)[indexFicha];
     jugador[pos]->cantidad++;
 
+    // Eliminar ficha del montón
     free((*fichas)[indexFicha]);
     for (int i = indexFicha; i < *cantidad - 1; i++) {
         (*fichas)[i] = (*fichas)[i + 1];
     }
-    *cantidad -= 1;
-    *fichas = realloc(*fichas, (*cantidad) * sizeof(Ficha *));
 
-    if (!SearchPieza(jugador, tablero, pos)) {
-        EatPieza(jugador, fichas, tablero, pos, cantidad);
+    *cantidad -= 1;
+
+    if (*cantidad > 0) {
+        *fichas = realloc(*fichas, (*cantidad) * sizeof(Ficha *));
+    } else {
+        free(*fichas);
+        *fichas = NULL;
     }
 }
 
@@ -135,4 +139,3 @@ int CheckWinner(Player **jugadores, int pos) {
     }
     return 0;
 }
-
