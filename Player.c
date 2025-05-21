@@ -43,7 +43,7 @@ int StarterPlayer(Player **jugadores, int py) {
             }
         }
     }
-    return 0; // fallback
+    return 0; 
 }
 
 int CheckPieza(Player **jugador, int pos, int ficha, Tablero *tablero) {
