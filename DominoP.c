@@ -52,14 +52,17 @@ void Domino() {
         if (!SearchPieza(jugadores, tablero, turno) && cantidad == 0) {
             pasar++;
             printf("El jugador %d pasa turno\n", turno + 1);
-            continue;
+            if(pasar < py)
+                continue;
         } else {
-            pasar = 0;
+            pasar = 0; // Reiniciar contador si el jugador pudo jugar
         }
+        // Si todos pasaron consecutivamente
         if (pasar == py) {
             printf("Empate!!\n");
             break;
         }
+
         int ficha = SelectFicha(jugadores, turno);
         int lado = CheckPieza(jugadores, turno, ficha, tablero);
         while (!lado) {

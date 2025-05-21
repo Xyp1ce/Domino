@@ -23,7 +23,7 @@ void FreeMemory(Ficha **fichas, Player **jugadores, Tablero *tablero, int cantid
     }
     free(jugadores);
 
-    if(cantidad > 0) {
+    if(cantidad > 0 && fichas != NULL) {
         for (int i = 0; i < cantidad; i++) {
             free(fichas[i]);
         }
