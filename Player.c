@@ -103,6 +103,9 @@ void EatPieza(Player **jugador, Ficha ***fichas, Tablero *tablero, int pos, int 
         free(*fichas);
         *fichas = NULL;
     }
+
+    while(!SearchPieza(jugador, tablero, pos))
+        EatPieza(jugador, fichas, tablero, pos, cantidada);
 }
 
 int SearchPieza(Player **jugador, Tablero *tablero, int pos) {
